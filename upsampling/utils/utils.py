@@ -14,8 +14,11 @@ def get_fps_file(dirpath: str) -> Union[None, str]:
         return fps_file
     return None
 
-def get_imgs_directory(dirpath: str) -> Union[None, str]:
-    imgs_dir = os.path.join(dirpath, imgs_dirname)
+def get_imgs_directory(dirpath: str, img_dir_name: str = None) -> Union[None, str]:
+    if img_dir_name is None:
+        imgs_dir = os.path.join(dirpath, imgs_dirname)
+    else:
+        imgs_dir = os.path.join(dirpath, img_dir_name)
     if os.path.isdir(imgs_dir):
         return imgs_dir
     return None
@@ -35,21 +38,27 @@ def fps_from_file(fps_file) -> float:
     assert fps > 0, 'Expected fps to be larger than 0. Instead got fps={}'.format(fps)
     return fps
 
-def get_sequence_or_none(dirpath: str) -> Union[None, Sequence]:
-    fps_file = get_fps_file(dirpath)
-    if fps_file:
-        # Must be a sequence (either ImageSequence or VideoSequence)
-        fps = fps_from_file(fps_file)
-        imgs_dir = get_imgs_directory(dirpath)
-        if imgs_dir:
-            return ImageSequence(imgs_dir, fps)
-        video_file = get_video_file(dirpath)
-        assert video_file is not None
-        return VideoSequence(video_file, fps)
-    # Can be VideoSequence if there is a video file. But have to use fps from meta data.
+def get_sequence_or_none(dirpath: str, img_dir_name: str = None, default_fps: int = None) -> Union[None, Sequence]:
+    # Can be ImageSequence if there is an imgs directory
+    imgs_dir = get_imgs_directory(dirpath, img_dir_name)
+    if imgs_dir:
+        fps_file = get_fps_file(dirpath)
+        if fps_file:
+            fps = fps_from_file(fps_file)
+        elif default_fps:
+            fps = default_fps  # Use default fps if there is no fps file. (only for ImageSequence)
+        else:
+            return None
+        return ImageSequence(imgs_dir, fps)
+    
+    # Can be VideoSequence if there is a video file.
     video_file = get_video_file(dirpath)
-    if video_file is not None:
-        return VideoSequence(video_file)
+    if video_file:
+        fps_file = get_fps_file(dirpath)
+        if fps_file:
+            fps = fps_from_file(fps_file)
+        else:
+            fps = None  # Have to use fps from meta data.
+        return VideoSequence(video_file, fps)
+    
     return None
-
-

@@ -14,13 +14,13 @@ from .utils import get_sequence_or_none
 class Upsampler:
     _timestamps_filename = 'timestamps.txt'
 
-    def __init__(self, input_dir: str, output_dir: str):
+    def __init__(self, input_dir: str, output_dir: str, img_dir_name=None, fps=None):
         assert os.path.isdir(input_dir), 'The input directory must exist'
-        assert not os.path.exists(output_dir), 'The output directory must not exist'
-
-        self._prepare_output_dir(input_dir, output_dir)
+        
         self.src_dir = input_dir
         self.dest_dir = output_dir
+        self.img_dir_name = imgs_dirname
+        self.fps = fps
 
         path = os.path.join(os.path.dirname(__file__), "../../pretrained_models/film_net/Style/saved_model")
         self.interpolator = Interpolator(path, None)
@@ -28,13 +28,13 @@ class Upsampler:
     def upsample(self):
         sequence_counter = 0
         for src_absdirpath, dirnames, filenames in os.walk(self.src_dir):
-            sequence = get_sequence_or_none(src_absdirpath)
+            sequence = get_sequence_or_none(src_absdirpath, self.img_dir_name, self.fps)
             if sequence is None:
                 continue
             sequence_counter += 1
             print('Processing sequence number {}'.format(src_absdirpath))
             reldirpath = os.path.relpath(src_absdirpath, self.src_dir)
-            dest_imgs_dir = os.path.join(self.dest_dir, reldirpath, imgs_dirname)
+            dest_imgs_dir = os.path.join(self.dest_dir, reldirpath, self.img_dir_name)
             dest_timestamps_filepath = os.path.join(self.dest_dir, reldirpath, self._timestamps_filename)
             self.upsample_sequence(sequence, dest_imgs_dir, dest_timestamps_filepath)
 
@@ -91,7 +91,7 @@ class Upsampler:
         # Copy directory structure.
         def ignore_files(directory, files):
             return [f for f in files if os.path.isfile(os.path.join(directory, f))]
-        shutil.copytree(src_dir, dest_dir, ignore=ignore_files)
+        shutil.copytree(src_dir, dest_dir, ignore=ignore_files, dirs_exist_ok=True)
 
     @staticmethod
     def _write_img(img: np.ndarray, idx: int, imgs_dir: str):
