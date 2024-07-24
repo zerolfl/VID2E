@@ -62,6 +62,16 @@ def _pad_to_align(x, align):
   }
   return padded_x, bbox_to_crop
 
+# tf.debugging.set_log_device_placement(True)
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+
 
 class Interpolator:
   """A class for generating interpolated frames between two input frames.

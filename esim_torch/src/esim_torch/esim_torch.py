@@ -62,12 +62,13 @@ class EventSimulator_torch(torch.nn.Module):
 
         event_counts = torch.zeros_like(images[0]).long()
 
-        reference_values_over_time, event_counts = esim_cuda.forward_count_events(images, 
-                                                                                  self.initial_reference_values,
-                                                                                  reference_values_over_time,
-                                                                                  event_counts,
-                                                                                  self.contrast_threshold_neg,
-                                                                                  self.contrast_threshold_pos)
+        with torch.cuda.device(images.device):
+            reference_values_over_time, event_counts = esim_cuda.forward_count_events(images, 
+                                                                                      self.initial_reference_values,
+                                                                                      reference_values_over_time,
+                                                                                      event_counts,
+                                                                                      self.contrast_threshold_neg,
+                                                                                      self.contrast_threshold_pos)
 
         # compute the offsets for each event group
         cumsum = event_counts.view(-1).cumsum(dim=0)
@@ -77,16 +78,17 @@ class EventSimulator_torch(torch.nn.Module):
         # compute events on the GPU
         events = torch.zeros((total_num_events, 4), device=cumsum.device, dtype=cumsum.dtype)
 
-        events = esim_cuda.forward(images,
-                                   timestamps,
-                                   self.initial_reference_values,
-                                   reference_values_over_time,
-                                   offsets,
-                                   events,
-                                   self.timestamps_last_event,
-                                   self.contrast_threshold_neg,
-                                   self.contrast_threshold_pos,
-                                   self.refractory_period_ns)
+        with torch.cuda.device(images.device):
+            events = esim_cuda.forward(images,
+                                       timestamps,
+                                       self.initial_reference_values,
+                                       reference_values_over_time,
+                                       offsets,
+                                       events,
+                                       self.timestamps_last_event,
+                                       self.contrast_threshold_neg,
+                                       self.contrast_threshold_pos,
+                                       self.refractory_period_ns)
 
 
         # sort by timestamps. Do this for each batch of events
