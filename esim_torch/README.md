@@ -5,7 +5,7 @@ Test your installation with
 
 ```bash
 cd esim_torch/
-python test.py
+python test/test.py
 ```
 
 which should create a plot. 

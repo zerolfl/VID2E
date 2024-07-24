@@ -5,7 +5,6 @@
     <img src="http://rpg.ifi.uzh.ch/data/VID2E/thumb.png" alt="Video to Events" width="600"/>
   </a>
 </p>
-
 This repository contains code that implements 
 video to events conversion as described in Gehrig et al. CVPR'20 and the used dataset. The paper can be found [here](http://rpg.ifi.uzh.ch/docs/CVPR20_Gehrig.pdf)
 
@@ -35,43 +34,33 @@ Try out our the interactive demo and webcam support [here](web_app/README.md).
 The synthetic N-Caltech101 dataset, as well as video sequences used for event conversion can be found [here](http://rpg.ifi.uzh.ch/data/VID2E/ncaltech_syn_images.zip). For each sample of each class it contains events in the form `class/image_%04d.npz` and images in the form `class/image_%05d/images/image_%05d.png`, as well as the corresponding timestamps of the images in `class/image_%04d/timestamps.txt`.
 
 ## Installation
-Clone the repo *recursively with submodules*
+First download the [FILM](https://github.com/google-research/frame-interpolation) checkpoint:
 
 ```bash
-git clone git@github.com:uzh-rpg/rpg_vid2e.git --recursive
+cd <project_path>
+wget https://rpg.ifi.uzh.ch/data/VID2E/pretrained_models.zip -O temp.zip
+unzip temp.zip -d .
+rm -rf temp.zip
 ```
 
-## Installation
-First download the [FILM](https://github.com/google-research/frame-interpolation) checkpoint, and move it to the current root
-```bash
-    wget https://rpg.ifi.uzh.ch/data/VID2E/pretrained_models.zip -O /tmp/temp.zip
-    unzip /tmp/temp.zip -d rpg_vid2e/
-    rm -rf /tmp/temp.zip
-```
-
-make sure to install the following
-    * [Anaconda Python 3.9](https://www.anaconda.com/products/individual)
-    * [CUDA Toolkit 11.2.1](https://developer.nvidia.com/cuda-11.2.1-download-archive)
-    * [cuDNN 8.1.0](https://developer.nvidia.com/rdp/cudnn-download)
+Create environments:
 
 ```bash
 conda create --name vid2e python=3.9
 conda activate vid2e
-pip install -r rpg_vid2e/requirements.txt
-conda install -y -c conda-forge pybind11 matplotlib
-conda install -y pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+pip install -r requirements.txt
 ```
 
 Build the python bindings for ESIM
 
 ```bash
-pip install rpg_vid2e/esim_py/
+pip install ./esim_py/
 ```
 
 Build the python bindings with GPU support with 
 
 ```bash
-pip install rpg_vid2e/esim_torch/
+pip install ./esim_torch/
 ```
 
 ## Adaptive Upsampling
@@ -95,7 +84,7 @@ To run an example, first upsample the example videos
 ```bash
 device=cpu
 # device=cuda:0
-python upsampling/upsample.py --input_dir=example/original --output_dir=example/upsampled --device=$device
+python upsampling/upsample.py --input_dir=example/original --output_dir=example/upsampled
 
 ```
 This will generate upsampling/upsampled with in the `example/upsampled` folder. To generate events, use
@@ -106,6 +95,3 @@ python esim_torch/generate_events.py --input_dir=example/upsampled \
                                      --contrast_threshold_pos=0.2 \
                                      --refractory_period_ns=0
 ```
-
-
-
