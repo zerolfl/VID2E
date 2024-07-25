@@ -19,7 +19,7 @@ class Upsampler:
         
         self.src_dir = input_dir
         self.dest_dir = output_dir
-        self.img_dir_name = imgs_dirname
+        self.img_dir_name = img_dir_name
         self.fps = fps
 
         path = os.path.join(os.path.dirname(__file__), "../../pretrained_models/film_net/Style/saved_model")
